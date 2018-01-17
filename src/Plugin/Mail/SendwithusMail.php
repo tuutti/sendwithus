@@ -1,10 +1,16 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace Drupal\sendwithus\Plugin\Mail;
 
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Mail\MailInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\sendwithus\Context;
+use Drupal\sendwithus\Resolver\Template\TemplateResolver;
+use Drupal\sendwithus\Template;
+use Drupal\sendwithus\Variable;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Logger\LoggerChannelFactory;
@@ -27,24 +33,27 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
    * @var \Drupal\Core\Queue\QueueFactory
    */
   protected $queue;
+
   /**
    * Drupal\Core\Logger\LoggerChannelFactory definition.
    *
    * @var \Drupal\Core\Logger\LoggerChannelFactory
    */
   protected $logger;
+
   /**
    * Drupal\sendwithus\ApiManager definition.
    *
    * @var \Drupal\sendwithus\ApiManager
    */
   protected $apiManager;
+
   /**
-   * Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher definition.
+   * The template resolver.
    *
-   * @var \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher
+   * @var \Drupal\sendwithus\Resolver\Template\TemplateResolver
    */
-  protected $eventDispatcher;
+  protected $resolver;
 
   /**
    * Constructs a new instance.
@@ -61,15 +70,15 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
    *   The logger factory.
    * @param \Drupal\sendwithus\ApiManager $apiManager
    *   The api key.
-   * @param \Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher $event_dispatcher
-   *   The even dispatcher.
+   * @param \Drupal\sendwithus\Resolver\Template\TemplateResolver $resolver
+   *   The template resolver.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, QueueFactory $queue, LoggerChannelFactory $logger_factory, ApiManager $apiManager, ContainerAwareEventDispatcher $event_dispatcher) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, QueueFactory $queue, LoggerChannelFactory $logger_factory, ApiManager $apiManager, TemplateResolver $resolver) {
 
     $this->queue = $queue;
     $this->logger = $logger_factory->get('sendwithus');
     $this->apiManager = $apiManager;
-    $this->eventDispatcher = $event_dispatcher;
+    $this->resolver = $resolver;
   }
 
   /**
@@ -83,7 +92,7 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
       $container->get('queue'),
       $container->get('logger.factory'),
       $container->get('sendwithus.api_manager'),
-      $container->get('event_dispatcher')
+      $container->get('sendwithus.template.resolver')
     );
   }
 
@@ -99,9 +108,13 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function mail(array $message) {
-    if (empty($message['sendwithus']['template_id'])) {
+    $template = $this->resolver->resolve(
+      new Context($message['module'], $message['id'], $message)
+    );
+
+    if (!$template instanceof Template) {
       $this->logger->error(
-        new FormattableMarkup('No template id found for given email (@type).', [
+        new FormattableMarkup('No template found for given email (@type).', [
           '@type' => $message['id'],
         ])
       );
@@ -120,9 +133,11 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
 
     // Rest of the recipients should be set as bcc.
     if (!empty($recipients)) {
-      $message['sendwithus']['args']['bcc'] = $recipients;
+      array_map(function (string $recipient) use ($template) {
+        $template->setVariable(new Variable('bcc', $recipient));
+      }, $recipients);
     }
-    $status = $api->send($message['sendwithus']['template_id'], $to, $message['sendwithus']['args'] ?? NULL);
+    $status = $api->send($template->getTemplateId(), $to, $template->toArray());
 
     if (!empty($status->success)) {
       return TRUE;

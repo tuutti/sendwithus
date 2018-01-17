@@ -1,2 +1,7 @@
-sendwithus:
-  api_key: ''
+api_key: ''
+templates:
+  -
+    template: ''
+    module: user
+    key: user_password_reset
+

@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace Drupal\sendwithus;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\key\KeyInterface;
 use Drupal\key\KeyRepository;
 use sendwithus\API;
 
@@ -72,17 +71,9 @@ class ApiManager {
     if (!$this->getKeyName()) {
       return '';
     }
-    return $this->getKey()->getKeyValue();
-  }
-
-  /**
-   * Gets the key.
-   *
-   * @return \Drupal\key\KeyInterface|null
-   *   The key.
-   */
-  public function getKey() : KeyInterface {
-    return $this->keyRepository->getKey($this->getKeyName());
+    return $this->keyRepository
+      ->getKey($this->getKeyName())
+      ->getKeyValue();
   }
 
   /**
