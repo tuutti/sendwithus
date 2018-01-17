@@ -1,0 +1,5 @@
+services:
+  sendwithus.api_manager:
+    class: Drupal\sendwithus\ApiManager
+    arguments: ['@key.repository', '@config.factory']
+

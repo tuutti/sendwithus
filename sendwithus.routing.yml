@@ -1,0 +1,8 @@
+sendwithus.settings:
+  path: '/admin/config/services/sendwithus'
+  defaults:
+    _form: '\Drupal\sendwithus\Form\SettingsForm'
+    _title: 'Settings'
+  requirements:
+    _permission: 'administer sendwithus'
+

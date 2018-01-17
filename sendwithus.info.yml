@@ -1,0 +1,6 @@
+name: Sendwithus
+type: module
+description: Sendwithus integration
+core: 8.x
+dependencies:
+  - key
