@@ -1,7 +1,1 @@
 api_key: ''
-templates:
-  -
-    template: ''
-    module: user
-    key: password_reset
-

@@ -5,6 +5,8 @@ declare(strict_types = 1);
 namespace Drupal\sendwithus\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -31,6 +33,13 @@ class SettingsForm extends ConfigFormBase {
   protected $moduleHandler;
 
   /**
+   * The storage.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $storage;
+
+  /**
    * Constructs a new instance.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -39,12 +48,15 @@ class SettingsForm extends ConfigFormBase {
    *   The api key service.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The module handler.
+   * @param \Drupal\Core\Entity\EntityStorageInterface $storage
+   *   The storage.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ApiManager $apiManager, ModuleHandlerInterface $moduleHandler) {
+  public function __construct(ConfigFactoryInterface $config_factory, ApiManager $apiManager, ModuleHandlerInterface $moduleHandler, EntityStorageInterface $storage) {
     parent::__construct($config_factory);
 
     $this->apiManager = $apiManager;
     $this->moduleHandler = $moduleHandler;
+    $this->storage = $storage;
   }
 
   /**
@@ -54,7 +66,8 @@ class SettingsForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('sendwithus.api_manager'),
-      $container->get('module_handler')
+      $container->get('module_handler'),
+      $container->get('entity_type.manager')->getStorage('sendwithus_template')
     );
   }
 
@@ -69,8 +82,6 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('sendwithus.settings');
-
     $form['api_key'] = [
       '#type' => 'key_select',
       '#default_value' => $this->apiManager->getApiKey(),
@@ -107,6 +118,7 @@ class SettingsForm extends ConfigFormBase {
     $form['templates']['templates'] = [
       '#type' => 'table',
       '#header' => [
+        'original_id' => NULL,
         'template' => $this->t('Template ID'),
         'key' => $this->t('Key'),
         'module' => $this->t('Module'),
@@ -115,26 +127,29 @@ class SettingsForm extends ConfigFormBase {
       '#empty' => $this->t('No templates set.'),
     ];
 
-    foreach ($config->get('templates') ?? [] as $data) {
-      list('module' => $module, 'template' => $template, 'key' => $key) = $data;
-
-      if (!$this->moduleHandler->moduleExists($module)) {
+    /** @var \Drupal\sendwithus\Entity\Template $entity */
+    foreach ($this->storage->loadMultiple() as $entity) {
+      if (!$this->moduleHandler->moduleExists($entity->getModule())) {
         continue;
       }
       $row = [
+        'original_id' => [
+          '#type' => 'hidden',
+          '#value' => $entity->id() ?? 0,
+        ],
         'template' => [
           '#type' => 'textfield',
-          '#default_value' => $template,
+          '#default_value' => $entity->id(),
         ],
         'key' => [
           '#type' => 'textfield',
-          '#default_value' => $key,
+          '#default_value' => $entity->getKey(),
         ],
         'module' => [
           '#type' => 'select',
           '#disabled' => TRUE,
           '#options' => $this->getModulesList(),
-          '#default_value' => $module,
+          '#default_value' => $entity->getModule(),
         ],
         'remove' => [
           '#type' => 'checkbox',
@@ -159,38 +174,41 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
 
-    $templates = [];
-
     $template = $form_state->getValue('templates');
 
     // Attempt to add  new template.
     if (!empty($template['template'])) {
-      $templates[] = [
-        'template' => $template['template'],
+      $this->storage->create([
+        'id' => $template['template'],
         'module' => $template['module'],
         'key' => $template['key'],
-      ];
+      ])->save();
     }
     foreach ($template['templates'] ?? [] as $value) {
       list(
-        'module' => $module,
+        'original_id' => $original_id,
         'template' => $template,
         'key' => $key,
         'remove' => $remove
         ) = $value;
 
+      /** @var \Drupal\sendwithus\Entity\Template $entity */
+      // Attempt to load with original id to allow rename.
+      $entity = $this->storage->load($original_id ?? $template);
+
       if ($remove) {
+        // Delete selected entities.
+        $entity->delete();
+
         continue;
       }
-      $templates[] = [
-        'template' => $template,
-        'key' => $key,
-        'module' => $module,
-      ];
+      if ($original_id) {
+        // Rename template.
+        $entity->set('id', $template);
+      }
+      $entity->setKey($key)
+        ->save();
     }
-    $this->config('sendwithus.settings')
-      ->set('templates', $templates);
-
     $this->apiManager->setApiKey($form_state->getValue('api_key'));
   }
 

@@ -10,7 +10,6 @@ use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\sendwithus\Context;
 use Drupal\sendwithus\Resolver\Template\TemplateResolver;
 use Drupal\sendwithus\Template;
-use Drupal\sendwithus\Variable;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Logger\LoggerChannelFactory;
@@ -135,10 +134,7 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
     if (!empty($recipients)) {
       $template->setVariable('bcc', $recipients);
     }
-
-    // Collect all template data.
-    $variables = $template->toArray();
-    $status = $api->send($template->getTemplateId(), $to, $variables);
+    $status = $api->send($template->getTemplateId(), $to, $template->toArray());
 
     if (!empty($status->success)) {
       return TRUE;

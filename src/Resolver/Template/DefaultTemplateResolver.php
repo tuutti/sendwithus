@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\sendwithus\Resolver\Template;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\sendwithus\Context;
 use Drupal\sendwithus\Resolver\Variable\VariableCollector;
 use Drupal\sendwithus\Template;
@@ -15,22 +15,22 @@ use Drupal\sendwithus\Template;
 final class DefaultTemplateResolver extends BaseTemplateResolver {
 
   /**
-   * The config.
+   * The storage.
    *
-   * @var \Drupal\Core\Config\ImmutableConfig
+   * @var \Drupal\Core\Entity\EntityStorageInterface
    */
-  protected $config;
+  protected $storage;
 
   /**
    * Constructs a new instance.
    *
    * @param \Drupal\sendwithus\Resolver\Variable\VariableCollector $collector
    *   The variable resolver.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
-   *   The configuration.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   The entity type manager.
    */
-  public function __construct(VariableCollector $collector, ConfigFactoryInterface $configFactory) {
-    $this->config = $configFactory->get('sendwithus.settings');
+  public function __construct(VariableCollector $collector, EntityTypeManagerInterface $entityTypeManager) {
+    $this->storage = $entityTypeManager->getStorage('sendwithus_template');
 
     parent::__construct($collector);
   }
@@ -39,21 +39,20 @@ final class DefaultTemplateResolver extends BaseTemplateResolver {
    * {@inheritdoc}
    */
   public function resolve(Context $context) : ? Template {
-    if (!$templates = $this->config->get('templates')) {
+    /** @var \Drupal\sendwithus\Entity\Template[] $templates */
+    if (!$templates = $this->storage->loadMultiple()) {
       return NULL;
     }
 
     $selected_template = NULL;
-    foreach ($templates as $data) {
-      list('module' => $module, 'template' => $template, 'key' => $key) = $data;
-
+    foreach ($templates as $entity) {
       // Module name must always match.
-      if ($context->getModule() !== $module) {
+      if ($context->getModule() !== $entity->getModule()) {
         continue;
       }
-      $selected_template = $template;
+      $selected_template = $entity->id();
 
-      if ($context->getId() === $key) {
+      if ($context->getId() === $entity->getKey()) {
         // Can't find better match than key+template match.
         break;
       }

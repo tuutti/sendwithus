@@ -4,19 +4,3 @@ sendwithus.settings:
     api_key:
       type: string
       label: 'API key'
-    templates:
-      type: sequence
-      label: 'List of templates'
-      sequence:
-        type: mapping
-        label: 'Per module/key setting'
-        mapping:
-          template:
-            type: string
-            label: The template ID
-          module:
-            type: string
-            label: The module name
-          key:
-            type: string
-            label: The email key
