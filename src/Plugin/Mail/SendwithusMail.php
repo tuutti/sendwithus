@@ -8,16 +8,20 @@ use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Mail\MailInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\sendwithus\Context;
+use Drupal\sendwithus\EmailParserTrait;
+use Drupal\sendwithus\Event\EmailTemplateAlter;
+use Drupal\sendwithus\Event\Events;
 use Drupal\sendwithus\Resolver\Template\TemplateResolver;
 use Drupal\sendwithus\Template;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\sendwithus\ApiManager;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
- * Provides a 'SendwithusMail' mail plugin.
+ * Provides a 'sendwithus' mail plugin.
  *
  * @Mail(
  *  id = "sendwithus_mail",
@@ -25,6 +29,8 @@ use Symfony\Component\HttpFoundation\ParameterBag;
  * )
  */
 class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
+
+  use EmailParserTrait;
 
   /**
    * Drupal\Core\Queue\QueueFactory definition.
@@ -55,6 +61,13 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
   protected $resolver;
 
   /**
+   * The event dispatcher.
+   *
+   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
+   */
+  protected $eventDispatcher;
+
+  /**
    * Constructs a new instance.
    *
    * @param array $configuration
@@ -71,13 +84,16 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
    *   The api key.
    * @param \Drupal\sendwithus\Resolver\Template\TemplateResolver $resolver
    *   The template resolver.
+   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $eventDispatcher
+   *   The event dispatcher.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, QueueFactory $queue, LoggerChannelFactory $logger_factory, ApiManager $apiManager, TemplateResolver $resolver) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, QueueFactory $queue, LoggerChannelFactory $logger_factory, ApiManager $apiManager, TemplateResolver $resolver, EventDispatcherInterface $eventDispatcher) {
 
     $this->queue = $queue;
     $this->logger = $logger_factory->get('sendwithus');
     $this->apiManager = $apiManager;
     $this->resolver = $resolver;
+    $this->eventDispatcher = $eventDispatcher;
   }
 
   /**
@@ -91,7 +107,8 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
       $container->get('queue'),
       $container->get('logger.factory'),
       $container->get('sendwithus.api_manager'),
-      $container->get('sendwithus.template.resolver')
+      $container->get('sendwithus.template.resolver'),
+      $container->get('event_dispatcher')
     );
   }
 
@@ -107,9 +124,8 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
    * {@inheritdoc}
    */
   public function mail(array $message) {
-    $template = $this->resolver->resolve(
-      new Context($message['module'], $message['id'], new ParameterBag($message))
-    );
+    $context = new Context($message['module'], $message['id'], new ParameterBag($message));
+    $template = $this->resolver->resolve($context);
 
     if (!$template instanceof Template) {
       $this->logger->error(
@@ -120,24 +136,38 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
 
       return FALSE;
     }
-    $api = $this->apiManager->getApi();
+    $options = $message['params']['sendwithus']['options'] ?? [];
+    $api = $this->apiManager->getAdapter($options);
 
     // Recipients must be formatted in ['address' => 'mail@example.tdl'] format.
-    $recipients = array_map(function (string $element) {
-      return ['address' => $element];
-    }, explode(',', $message['to']));
+    $recipients = $this->parseAddresses($message['to']);
+
+    if (!empty($message['headers']['Cc'])) {
+      $template->setVariable('cc', $this->parseAddresses($message['headers']['Cc']));
+    }
 
     // Make the first recipient our 'primary' recipient.
     $to = array_shift($recipients);
 
+    // Merge manually set BCCs with rest of the recipients.
+    if (!empty($message['headers']['Bcc'])) {
+      $recipients = array_merge($recipients, $this->parseAddresses($message['headers']['Bcc']));
+    }
     // Additional recipients should be set as bcc.
     if (!empty($recipients)) {
       $template->setVariable('bcc', $recipients);
     }
+    /** @var \Drupal\sendwithus\Event\EmailTemplateAlter $event */
+    $event = $this->eventDispatcher->dispatch(Events::EMAIL_TEMPLATE_ALTER,
+      new EmailTemplateAlter($context, $template)
+    );
+    // Allow template to be altered before sending the email.
+    $template = $event->getTemplate();
+
     $status = $api->send($template->getTemplateId(), $to, $template->toArray());
 
     if (!empty($status->success)) {
-      return TRUE;
+      return ['response' => $status, 'template' => $template];
     }
 
     if (isset($status->exception)) {

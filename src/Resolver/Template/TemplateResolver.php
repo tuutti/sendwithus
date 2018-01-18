@@ -27,6 +27,16 @@ class TemplateResolver {
   }
 
   /**
+   * Gets the resolvers.
+   *
+   * @return \Drupal\sendwithus\Resolver\Template\TemplateResolverInterface[]
+   *   The resolvers.
+   */
+  public function getResolvers() : array {
+    return $this->resolvers;
+  }
+
+  /**
    * Adds the resolver.
    *
    * @param \Drupal\sendwithus\Resolver\Template\TemplateResolverInterface $resolver

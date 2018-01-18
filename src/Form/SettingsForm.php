@@ -6,7 +6,6 @@ namespace Drupal\sendwithus\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityStorageInterface;
-use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -184,6 +183,12 @@ class SettingsForm extends ConfigFormBase {
         'key' => $template['key'],
       ])->save();
     }
+
+    // This will default to empty string by default.
+    if (empty($template['templates'])) {
+      $template['templates'] = [];
+    }
+
     foreach ($template['templates'] ?? [] as $value) {
       list(
         'original_id' => $original_id,

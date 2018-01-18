@@ -84,8 +84,14 @@ class ApiManager {
    * @return \sendwithus\API
    *   The api instance.
    */
-  public function getApi(array $options = []) : API {
-    return new API($this->getApiKey(), $options);
+  public function getAdapter(array $options = []) : API {
+    if (!isset($options['adapter'])) {
+      return new API($this->getApiKey(), $options);
+    }
+    if (!$options['adapter'] instanceof API) {
+      throw new \InvalidArgumentException('Invalid adapter');
+    }
+    return $options['adapter'];
   }
 
 }

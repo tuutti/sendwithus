@@ -15,11 +15,14 @@ interface VariableCollectorInterface {
   /**
    * Resolves the data for given context.
    *
+   * @todo Add missing return type when Drupal supports newer
+   * phpunit.
+   *
    * @param \Drupal\sendwithus\Template $template
    *   The template.
    * @param \Drupal\sendwithus\Context $context
    *   The context.
    */
-  public function collect(Template $template, Context $context) : void;
+  public function collect(Template $template, Context $context);
 
 }

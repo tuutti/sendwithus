@@ -20,7 +20,7 @@ final class Template implements \IteratorAggregate {
    * @param string $templateId
    *   The template id.
    */
-  public function __construct(string $templateId = NULL) {
+  public function __construct(string $templateId) {
     $this->templateId = $templateId;
     $this->variables = new ParameterBag([]);
   }

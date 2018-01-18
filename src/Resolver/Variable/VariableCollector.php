@@ -27,6 +27,16 @@ class VariableCollector {
   }
 
   /**
+   * Gets the collectors.
+   *
+   * @return \Drupal\sendwithus\Resolver\Variable\VariableCollectorInterface[]
+   *   The collectors.
+   */
+  public function getCollectors() : array {
+    return $this->collectors;
+  }
+
+  /**
    * Adds the resolver.
    *
    * @param \Drupal\sendwithus\Resolver\Variable\VariableCollectorInterface $collector
