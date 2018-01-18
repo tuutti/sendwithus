@@ -5,21 +5,21 @@ declare(strict_types = 1);
 namespace Drupal\sendwithus\Resolver\Variable;
 
 use Drupal\sendwithus\Context;
+use Drupal\sendwithus\Template;
 
 /**
  * Provides an interface for variable resolver.
  */
-interface VariableResolverInterface {
+interface VariableCollectorInterface {
 
   /**
    * Resolves the data for given context.
    *
+   * @param \Drupal\sendwithus\Template $template
+   *   The template.
    * @param \Drupal\sendwithus\Context $context
    *   The context.
-   *
-   * @return array
-   *   The resolved variables.
    */
-  public function resolve(Context $context) : array;
+  public function collect(Template $template, Context $context) : void;
 
 }

@@ -4,31 +4,23 @@ declare(strict_types = 1);
 
 namespace Drupal\sendwithus\Resolver\Template;
 
-use Drupal\sendwithus\Context;
-use Drupal\sendwithus\Template;
+use Drupal\sendwithus\Resolver\Variable\VariableCollector;
 
 /**
  * Provides a base template resolver class.
  */
 abstract class BaseTemplateResolver implements TemplateResolverInterface {
 
-  protected $variableResolver;
+  protected $variableCollector;
 
   /**
    * Constructs a new instance.
    *
-   * @param \Drupal\sendwithus\Resolver\Template\VariableResolver $resolver
+   * @param \Drupal\sendwithus\Resolver\Variable\VariableCollector $collector
    *   The variable resolver.
    */
-  public function __construct(VariableResolver $resolver) {
-    $this->variableResolver = $resolver;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function resolve(Context $context) : ? Template {
-    return new Template('', $this->variableResolver->resolve($context));
+  public function __construct(VariableCollector $collector) {
+    $this->variableCollector = $collector;
   }
 
 }

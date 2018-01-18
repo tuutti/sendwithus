@@ -6,6 +6,7 @@ namespace Drupal\sendwithus\Resolver\Template;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\sendwithus\Context;
+use Drupal\sendwithus\Resolver\Variable\VariableCollector;
 use Drupal\sendwithus\Template;
 
 /**
@@ -23,15 +24,15 @@ final class DefaultTemplateResolver extends BaseTemplateResolver {
   /**
    * Constructs a new instance.
    *
-   * @param \Drupal\sendwithus\Resolver\Template\VariableResolver $resolver
+   * @param \Drupal\sendwithus\Resolver\Variable\VariableCollector $collector
    *   The variable resolver.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   The configuration.
    */
-  public function __construct(VariableResolver $resolver, ConfigFactoryInterface $configFactory) {
+  public function __construct(VariableCollector $collector, ConfigFactoryInterface $configFactory) {
     $this->config = $configFactory->get('sendwithus.settings');
 
-    parent::__construct($resolver);
+    parent::__construct($collector);
   }
 
   /**
@@ -42,7 +43,7 @@ final class DefaultTemplateResolver extends BaseTemplateResolver {
       return NULL;
     }
 
-    $selected_template = '';
+    $selected_template = NULL;
     foreach ($templates as $data) {
       list('module' => $module, 'template' => $template, 'key' => $key) = $data;
 
@@ -57,10 +58,15 @@ final class DefaultTemplateResolver extends BaseTemplateResolver {
         break;
       }
     }
-    $template = parent::resolve($context)
-      ->setTemplateId($selected_template);
 
-    return $selected_template ? $template : NULL;
+    if ($selected_template) {
+      $template = new Template($selected_template);
+      // Populate template variables.
+      $this->variableCollector->collect($template, $context);
+
+      return $template;
+    }
+    return NULL;
   }
 
 }

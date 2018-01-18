@@ -3,5 +3,5 @@ templates:
   -
     template: ''
     module: user
-    key: user_password_reset
+    key: password_reset
 

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace Drupal\sendwithus;
 
+use Symfony\Component\HttpFoundation\ParameterBag;
+
 /**
  * Provides a context to store required email metadata.
  */
@@ -20,10 +22,10 @@ final class Context {
    *   The module sending email.
    * @param string $id
    *   The email id.
-   * @param mixed $data
+   * @param \Symfony\Component\HttpFoundation\ParameterBag $data
    *   The data.
    */
-  public function __construct(string $module, string $id, $data) {
+  public function __construct(string $module, string $id, ParameterBag $data) {
     $this->module = $module;
     $this->id = $id;
     $this->data = $data;
@@ -52,10 +54,10 @@ final class Context {
   /**
    * Gets the data.
    *
-   * @return mixed
+   * @return \Symfony\Component\HttpFoundation\ParameterBag
    *   The data.
    */
-  public function getData() {
+  public function getData() : ParameterBag {
     return $this->data;
   }
 

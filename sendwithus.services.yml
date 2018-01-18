@@ -3,14 +3,21 @@ services:
     class: Drupal\sendwithus\ApiManager
     arguments: ['@key.repository', '@config.factory']
 
-  sendwithus.renderer:
-    class: Drupal\sendwithus\Renderer
-    arguments: ['@sendwithus.api_manager']
-
-  sendwithus.variable.resolver:
-    class: Drupal\sendwithus\Resolver\Variable\VariableResolver
+  sendwithus.variable.collector:
+    class: Drupal\sendwithus\Resolver\Variable\VariableCollector
     tags:
-      - { name: service_collector, call: addResolver, tag: sendwithus.variable.resolver }
+      - { name: service_collector, call: addCollector, tag: sendwithus.variable.collector }
+
+  sendwithus.variable.system_collector:
+    class: Drupal\sendwithus\Resolver\Variable\SystemVariableCollector
+    arguments: ['@config.factory', '@url_generator']
+    tags:
+      - { name: sendwithus.variable.collector, priority: 400 }
+
+  sendwithus.variable.user_collector:
+    class: Drupal\sendwithus\Resolver\Variable\UserVariableCollector
+    tags:
+      - { name: sendwithus.variable.collector, priority: 400 }
 
   sendwithus.template.resolver:
     class: Drupal\sendwithus\Resolver\Template\TemplateResolver
@@ -19,7 +26,7 @@ services:
 
   sendwithus.template.default_resolver:
     class: Drupal\sendwithus\Resolver\Template\DefaultTemplateResolver
-    arguments: ['@config.factory']
+    arguments: ['@sendwithus.variable.collector', '@config.factory']
     tags:
       - { name: sendwithus.template.resolver, priority: 400 }
 

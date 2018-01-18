@@ -15,7 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Queue\QueueFactory;
 use Drupal\Core\Logger\LoggerChannelFactory;
 use Drupal\sendwithus\ApiManager;
-use Drupal\Component\EventDispatcher\ContainerAwareEventDispatcher;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * Provides a 'SendwithusMail' mail plugin.
@@ -109,7 +109,7 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
    */
   public function mail(array $message) {
     $template = $this->resolver->resolve(
-      new Context($message['module'], $message['id'], $message)
+      new Context($message['module'], $message['id'], new ParameterBag($message))
     );
 
     if (!$template instanceof Template) {
@@ -121,23 +121,24 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
 
       return FALSE;
     }
-
     $api = $this->apiManager->getApi();
 
-    $recipients = array_map(function ($element) {
+    // Recipients must be formatted in ['address' => 'mail@example.tdl'] format.
+    $recipients = array_map(function (string $element) {
       return ['address' => $element];
     }, explode(',', $message['to']));
 
     // Make the first recipient our 'primary' recipient.
     $to = array_shift($recipients);
 
-    // Rest of the recipients should be set as bcc.
+    // Additional recipients should be set as bcc.
     if (!empty($recipients)) {
-      array_map(function (string $recipient) use ($template) {
-        $template->setVariable(new Variable('bcc', $recipient));
-      }, $recipients);
+      $template->setVariable('bcc', $recipients);
     }
-    $status = $api->send($template->getTemplateId(), $to, $template->toArray());
+
+    // Collect all template data.
+    $variables = $template->toArray();
+    $status = $api->send($template->getTemplateId(), $to, $variables);
 
     if (!empty($status->success)) {
       return TRUE;

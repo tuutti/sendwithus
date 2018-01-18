@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace Drupal\sendwithus;
 
-use Webmozart\Assert\Assert;
+use Symfony\Component\HttpFoundation\ParameterBag;
 
 /**
  * Provides a context to store required template data.
@@ -19,14 +19,10 @@ final class Template implements \IteratorAggregate {
    *
    * @param string $templateId
    *   The template id.
-   * @param \Drupal\sendwithus\Variable[] $variables
-   *   The variables.
    */
-  public function __construct(string $templateId = NULL, array $variables = []) {
-    Assert::allIsInstanceOf($variables, Variable::class);
-
+  public function __construct(string $templateId = NULL) {
     $this->templateId = $templateId;
-    $this->variables = $variables;
+    $this->variables = new ParameterBag([]);
   }
 
   /**
@@ -54,44 +50,61 @@ final class Template implements \IteratorAggregate {
   }
 
   /**
-   * Sets the variables.
-   *
-   * @param \Drupal\sendwithus\Variable[] $variables
-   *   The variables.
-   *
-   * @return \Drupal\sendwithus\Template
-   *   The template.
-   */
-  public function setVariables(array $variables) : self {
-    Assert::allIsInstanceOf($variables, Variable::class);
-
-    $this->variables = $variables;
-
-    return $this;
-  }
-
-  /**
    * Sets the variable.
    *
-   * @param \Drupal\sendwithus\Variable $variable
-   *   The variable.
+   * @param string $key
+   *   The key.
+   * @param mixed $value
+   *   The value.
    *
    * @return \Drupal\sendwithus\Template
    *   The self.
    */
-  public function setVariable(Variable $variable) : self {
-    $this->variables[] = $variable;
-
+  public function setVariable(string $key, $value) : self {
+    $this->variables->set($key, $value);
     return $this;
+  }
+
+  /**
+   * Sets the template variable.
+   *
+   * @param string $key
+   *   The key.
+   * @param mixed $value
+   *   The value.
+   *
+   * @return \Drupal\sendwithus\Template
+   *   The self.
+   */
+  public function setTemplateVariable(string $key, $value) : self {
+    $data = $this->getVariable('template_data', []);
+    $data[$key] = $value;
+
+    return $this->setVariable('template_data', $data);
+  }
+
+  /**
+   * Gets the variable.
+   *
+   * @param string $key
+   *   The variable key.
+   * @param mixed $default
+   *   The default value.
+   *
+   * @return mixed
+   *   The variable or mixed.
+   */
+  public function getVariable(string $key, $default = NULL) {
+    return $this->variables->get($key, $default);
   }
 
   /**
    * Gets the variables.
    *
-   * @return \Drupal\sendwithus\Variable[]
-   *   The variables.
+   * @return \Symfony\Component\HttpFoundation\ParameterBag
+   *   The parameter bag.
    */
-  public function getVariables() : array {
+  public function getVariables() : ParameterBag {
     return $this->variables;
   }
 
@@ -102,16 +115,14 @@ final class Template implements \IteratorAggregate {
    *   The array of variables.
    */
   public function toArray() : array {
-    return iterator_to_array($this);
+    return iterator_to_array($this, TRUE);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getIterator() {
-    foreach ($this->variables as $variable) {
-      yield [$variable->getKey() => $variable->getValue()];
-    }
+    return $this->variables;
   }
 
 }

@@ -71,8 +71,7 @@ class ApiManager {
     if (!$this->getKeyName()) {
       return '';
     }
-    return $this->keyRepository
-      ->getKey($this->getKeyName())
+    return $this->keyRepository->getKey($this->getKeyName())
       ->getKeyValue();
   }
 
