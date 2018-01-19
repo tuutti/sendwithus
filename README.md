@@ -8,3 +8,7 @@ This modules integrates [Sendwithus](https://www.sendwithus.com/) with Drupal 8.
 ## Installation
 
 `$ composer require drupal/sendwithus`
+
+## Requirements
+
+- php 7.1+
