@@ -61,7 +61,7 @@ class Template extends ConfigEntityBase {
    * @return string
    *   The key.
    */
-  public function getKey() : string {
+  public function getKey() : ? string {
     return $this->key;
   }
 
