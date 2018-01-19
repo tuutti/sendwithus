@@ -14,6 +14,7 @@ use Drupal\Tests\BrowserTestBase;
 class AdminSettingsTest extends BrowserTestBase {
 
   protected const PATH = '/admin/config/services/sendwithus';
+  protected const TEST_PATH = '/admin/config/services/sendwithus/test';
 
   public static $modules = ['sendwithus', 'key'];
 
@@ -27,8 +28,12 @@ class AdminSettingsTest extends BrowserTestBase {
    * @covers ::getModulesList
    */
   public function testForm() {
-    $this->drupalGet(static::PATH);
-    $this->assertSession()->statusCodeEquals(403);
+    // Make sure we don't have access to configuration without a
+    // proper permission.
+    foreach ([static::PATH, static::TEST_PATH] as $path) {
+      $this->drupalGet($path);
+      $this->assertSession()->statusCodeEquals(403);
+    }
 
     $account = $this->createUser(['administer sendwithus']);
     $this->drupalLogin($account);
