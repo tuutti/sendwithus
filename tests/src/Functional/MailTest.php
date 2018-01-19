@@ -10,6 +10,7 @@ use sendwithus\API;
  * Tests SettingsForm.
  *
  * @coversDefaultClass \Drupal\sendwithus\Plugin\Mail\SendwithusMail
+ * @group sendwithus
  */
 class MailTest extends BrowserTestBase {
 

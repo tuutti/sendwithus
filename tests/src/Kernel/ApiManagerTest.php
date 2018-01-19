@@ -22,7 +22,7 @@ class ApiManagerTest extends KernelTestBase {
    * @covers ::getKeyName
    * @covers ::setApiKey
    * @covers ::getApiKey
-   * @covers ::getApi
+   * @covers ::getAdapter
    */
   public function testDefault() {
     foreach (['sendwithus', 'sendwithus2'] as $i => $value) {
