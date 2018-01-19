@@ -1,4 +1,4 @@
-sendwithus.settings:
+sendwithus.settings_form:
   path: '/admin/config/services/sendwithus'
   defaults:
     _form: '\Drupal\sendwithus\Form\SettingsForm'
@@ -6,3 +6,10 @@ sendwithus.settings:
   requirements:
     _permission: 'administer sendwithus'
 
+sendwithus.test_form:
+  path: '/admin/config/services/sendwithus/test'
+  defaults:
+    _form: '\Drupal\sendwithus\Form\TestMailForm'
+    _title: 'Test'
+  requirements:
+    _permission: 'administer sendwithus'
