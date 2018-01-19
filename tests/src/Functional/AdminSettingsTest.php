@@ -9,6 +9,7 @@ use Drupal\Tests\BrowserTestBase;
  * Tests SettingsForm.
  *
  * @coversDefaultClass \Drupal\sendwithus\Form\SettingsForm
+ * @group sendwithus
  */
 class AdminSettingsTest extends BrowserTestBase {
 
