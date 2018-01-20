@@ -27,7 +27,7 @@ This module provides two different ways to map template to the mail:
 
 #### 1. Through the UI (/admin/config/services/sendwithus)
 
-This should be enough for most of the cases.
+This should cover most of the cases.
 
 See [examples](examples/) for examples.
 
