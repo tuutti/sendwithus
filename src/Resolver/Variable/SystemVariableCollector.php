@@ -38,6 +38,8 @@ class SystemVariableCollector implements VariableCollectorInterface {
     $variables = [
       'key' => $context->getKey(),
       'module' => $context->getModule(),
+      'subject' => $context->getData()->get('subject'),
+      'body' => $context->getData()->get('body'),
     ];
 
     foreach (['id', 'langcode'] as $key) {

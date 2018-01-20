@@ -49,6 +49,8 @@ class SystemVariableCollectorTest extends KernelTestBase {
     $expected = [
       'module' => 'modulename',
       'key' => 'user_password_reset',
+      'body' => '',
+      'subject' => '',
       'langcode' => 'fi',
     ];
     $this->assertEquals($expected, $data['mail']);

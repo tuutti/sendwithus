@@ -61,7 +61,7 @@ final class DefaultTemplateResolver extends BaseTemplateResolver {
     if ($selected_template) {
       $template = new Template($selected_template);
       // Populate template variables.
-      $this->variableCollector->collect($template, $context);
+      parent::doCollectVariables($template, $context);
 
       return $template;
     }

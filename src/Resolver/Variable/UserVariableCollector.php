@@ -33,6 +33,9 @@ class UserVariableCollector implements VariableCollectorInterface {
     ];
 
     switch ($data->get('key')) {
+      case 'status_activated':
+      case 'register_no_approval_required':
+      case 'register_admin_created':
       case 'password_reset':
         $variables['reset_url'] = user_pass_reset_url($account);
         break;
