@@ -42,10 +42,16 @@ class SystemVariableCollectorTest extends KernelTestBase {
       'mail' => 'admin@example.com',
       'url' => 'http://localhost/',
       'login_url' => 'http://localhost/user',
-      'langcode' => 'fi',
     ];
 
     $this->assertEquals($expected, $data['site']);
+
+    $expected = [
+      'module' => 'modulename',
+      'key' => 'user_password_reset',
+      'langcode' => 'fi',
+    ];
+    $this->assertEquals($expected, $data['mail']);
   }
 
 }

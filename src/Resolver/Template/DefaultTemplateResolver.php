@@ -52,7 +52,7 @@ final class DefaultTemplateResolver extends BaseTemplateResolver {
       }
       $selected_template = $entity->id();
 
-      if ($context->getId() === $entity->getKey()) {
+      if ($context->getKey() === $entity->getKey()) {
         // Can't find better match than key+template match.
         break;
       }

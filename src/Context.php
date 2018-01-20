@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 final class Context {
 
   protected $module;
-  protected $id;
+  protected $key;
   protected $data;
 
   /**
@@ -20,14 +20,14 @@ final class Context {
    *
    * @param string $module
    *   The module sending email.
-   * @param string $id
-   *   The email id.
+   * @param string $key
+   *   The email key.
    * @param \Symfony\Component\HttpFoundation\ParameterBag $data
    *   The data.
    */
-  public function __construct(string $module, string $id, ParameterBag $data) {
+  public function __construct(string $module, string $key, ParameterBag $data) {
     $this->module = $module;
-    $this->id = $id;
+    $this->key = $key;
     $this->data = $data;
   }
 
@@ -47,8 +47,8 @@ final class Context {
    * @return string
    *   The id.
    */
-  public function getId() : string {
-    return $this->id;
+  public function getKey() : string {
+    return $this->key;
   }
 
   /**

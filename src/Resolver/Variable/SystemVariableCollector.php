@@ -34,18 +34,26 @@ class SystemVariableCollector implements VariableCollectorInterface {
    * {@inheritdoc}
    */
   public function collect(Template $template, Context $context) : void {
+    // Collect basic mail identification data.
     $variables = [
-      'name' => $this->config->get('name'),
-      'slogan' => $this->config->get('slogan'),
-      'mail' => $this->config->get('mail'),
-      'url' => $this->url->generateFromRoute('<front>', [], ['absolute' => TRUE]),
-      'login_url' => $this->url->generateFromRoute('user.page', [], ['absolute' => TRUE]),
+      'key' => $context->getKey(),
+      'module' => $context->getModule(),
     ];
 
-    if ($langcode = $context->getData()->get('langcode')) {
-      $variables['langcode'] = $langcode;
+    foreach (['id', 'langcode'] as $key) {
+      if (!$value = $context->getData()->get($key)) {
+        continue;
+      }
+      $variables[$key] = $value;
     }
-    $template->setTemplateVariable('site', $variables);
+    $template->setTemplateVariable('mail', $variables)
+      ->setTemplateVariable('site', [
+        'name' => $this->config->get('name'),
+        'slogan' => $this->config->get('slogan'),
+        'mail' => $this->config->get('mail'),
+        'url' => $this->url->generateFromRoute('<front>', [], ['absolute' => TRUE]),
+        'login_url' => $this->url->generateFromRoute('user.page', [], ['absolute' => TRUE]),
+      ]);
   }
 
 }
