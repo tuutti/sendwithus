@@ -17,13 +17,13 @@ class ContextTest extends UnitTestCase {
   /**
    * @covers ::__construct
    * @covers ::getModule
-   * @covers ::getId
+   * @covers ::getKey
    * @covers ::getData
    */
   public function testDefault() {
     $sut = new Context('test_module', 'test_id', new ParameterBag([]));
     $this->assertEquals('test_module', $sut->getModule());
-    $this->assertEquals('test_id', $sut->getId());
+    $this->assertEquals('test_id', $sut->getKey());
     $this->assertInstanceOf(ParameterBag::class, $sut->getData());
   }
 
