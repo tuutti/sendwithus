@@ -17,7 +17,7 @@ class ContextTest extends UnitTestCase {
   /**
    * @covers ::__construct
    * @covers ::getModule
-   * @covers ::getId
+   * @covers ::getKey
    * @covers ::getData
    */
   public function testDefault() {
