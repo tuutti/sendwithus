@@ -17,6 +17,7 @@
     }
   ],
   "require": {
+    "php": ">=7.1",
     "webmozart/assert": "~1",
     "sendwithus/api": "~6.0",
     "drupal/key": "~1.0"
