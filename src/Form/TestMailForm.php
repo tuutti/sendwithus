@@ -109,7 +109,7 @@ class TestMailForm extends FormBase {
     ]);
     $entity->save();
 
-    $result = $this->mailManager->mail('sendwithus', 'test_mail', $to, 'en');
+    $result = $this->mailManager->mail('sendwithus', 'test_mail', $to, $this->currentUser()->getPreferredLangcode());
 
     if (!empty($result['result'])) {
       drupal_set_message($this->t('Sendwithus mail sent succesfully!'));

@@ -81,6 +81,16 @@ class SettingsForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    $default_mailer = $this->config('system.mail')
+      ->get('interface.default');
+
+    $form['set_default'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Set sendwithus as default mail handler'),
+      '#description' => $this->t('Check this to use sendwithus as default mail handler.'),
+      '#default_value' => $default_mailer === 'sendwithus_mail',
+    ];
+
     $form['api_key'] = [
       '#type' => 'key_select',
       '#default_value' => $this->apiManager->getApiKey(),
@@ -173,9 +183,16 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     parent::submitForm($form, $form_state);
 
+    $set_default = $form_state->getValue('set_default');
+
+    if ($set_default) {
+      $this->configFactory->getEditable('system.mail')
+        ->set('interface.default', 'sendwithus_mail')
+        ->save();
+    }
     $template = $form_state->getValue('templates');
 
-    // Attempt to add  new template.
+    // Attempt to add new template.
     if (!empty($template['template'])) {
       $this->storage->create([
         'id' => $template['template'],

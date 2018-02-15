@@ -50,8 +50,11 @@ class AdminSettingsTest extends BrowserTestBase {
     $this->drupalGet(static::PATH);
     $this->assertSession()->pageTextContains('No templates set.');
 
-    $this->submitForm(['api_key' => 'sendwithus'], 'Submit');
+    $this->submitForm(['api_key' => 'sendwithus', 'set_default' => 1], 'Submit');
     $this->assertSession()->pageTextContains('The configuration options have been saved.');
+
+    $mailsystem = $this->config('system.mail')->get('interface.default');
+    $this->assertEquals($mailsystem, 'sendwithus_mail');
 
     // Make sure we can add new templates.
     $this->submitForm([

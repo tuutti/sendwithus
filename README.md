@@ -23,11 +23,11 @@ This module provides only a minimal functionality by itself and you will most li
 
 ### How to map sendwithus template to mail
 
-This module provides two different ways to map template to the mail:
+This module provides two different ways to map template to a mail:
 
 #### 1. Through the UI (/admin/config/services/sendwithus)
 
-This should cover most of the cases.
+This should cover most cases.
 
 See [examples](examples/) for examples.
 
