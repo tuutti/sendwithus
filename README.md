@@ -98,7 +98,7 @@ This module provides the following variable replacements by default:
 
 See `\Drupal\sendwithus\Resolver\Variable\SystemVariableCollector` and `\Drupal\sendwithus\Resolver\Variable\UserVariableCollector`.
 
-To define custom variable replacements, create a new `sendwithus.variable.collector` service:
+To define a custom variable replacements, create a new `sendwithus.variable.collector` service:
 
 **yourmodule.services.yml**:
 ```yaml
