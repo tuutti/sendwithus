@@ -11,7 +11,7 @@ use Symfony\Component\EventDispatcher\Event;
 /**
  * Defines the event for \Drupal\sendwithus\Event\Events.
  */
-final class EmailTemplateAlter extends Event {
+final class TemplateCollectorAlter extends Event {
 
   protected $context;
   protected $template;

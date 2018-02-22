@@ -9,7 +9,7 @@ use Drupal\Core\Mail\MailInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\sendwithus\Context;
 use Drupal\sendwithus\EmailParserTrait;
-use Drupal\sendwithus\Event\EmailTemplateAlter;
+use Drupal\sendwithus\Event\TemplateCollectorAlter;
 use Drupal\sendwithus\Event\Events;
 use Drupal\sendwithus\Resolver\Template\TemplateResolver;
 use Drupal\sendwithus\Template;
@@ -157,9 +157,9 @@ class SendwithusMail implements MailInterface, ContainerFactoryPluginInterface {
     if (!empty($recipients)) {
       $template->setVariable('bcc', $recipients);
     }
-    /** @var \Drupal\sendwithus\Event\EmailTemplateAlter $event */
-    $event = $this->eventDispatcher->dispatch(Events::EMAIL_TEMPLATE_ALTER,
-      new EmailTemplateAlter($context, $template)
+    /** @var \Drupal\sendwithus\Event\TemplateCollectorAlter $event */
+    $event = $this->eventDispatcher->dispatch(Events::TEMPLATE_ALTER,
+      new TemplateCollectorAlter($context, $template)
     );
     // Allow template to be altered before sending the email.
     $template = $event->getTemplate();

@@ -14,6 +14,6 @@ final class Events {
    *
    * @var string
    */
-  public const EMAIL_TEMPLATE_ALTER = 'sendwithus.email_template_alter';
+  public const TEMPLATE_ALTER = 'sendwithus.template_alter';
 
 }
