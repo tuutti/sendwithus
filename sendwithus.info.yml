@@ -4,4 +4,4 @@ description: Sendwithus integration
 core: 8.x
 php: 7.1
 dependencies:
-  - key
+  - key:key
