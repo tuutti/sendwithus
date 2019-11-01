@@ -4,10 +4,10 @@ declare(strict_types = 1);
 
 namespace Drupal\sendwithus\Form;
 
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Messenger\MessengerTrait;
 use Drupal\sendwithus\ApiManager;
 use Drupal\sendwithus\Entity\Template;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -16,6 +16,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Provides a form to manage sendwithus settings.
  */
 class TestMailForm extends FormBase {
+
+  use MessengerTrait;
 
   /**
    * The api manager.
@@ -34,14 +36,12 @@ class TestMailForm extends FormBase {
   /**
    * Constructs a new instance.
    *
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
    * @param \Drupal\sendwithus\ApiManager $apiManager
    *   The api key service.
    * @param \Drupal\Core\Mail\MailManagerInterface $mailManager
    *   The mail manager.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, ApiManager $apiManager, MailManagerInterface $mailManager) {
+  public function __construct(ApiManager $apiManager, MailManagerInterface $mailManager) {
     $this->apiManager = $apiManager;
     $this->mailManager = $mailManager;
   }
@@ -51,7 +51,6 @@ class TestMailForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('config.factory'),
       $container->get('sendwithus.api_manager'),
       $container->get('plugin.manager.mail')
     );
@@ -112,7 +111,7 @@ class TestMailForm extends FormBase {
     $result = $this->mailManager->mail('sendwithus', 'test_mail', $to, $this->currentUser()->getPreferredLangcode());
 
     if (!empty($result['result'])) {
-      drupal_set_message($this->t('Sendwithus mail sent succesfully!'));
+      $this->messenger()->addMessage($this->t('Sendwithus mail sent succesfully!'));
     }
     $entity->delete();
   }
